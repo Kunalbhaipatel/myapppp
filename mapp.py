@@ -67,9 +67,7 @@ st.markdown("# Rig Comparison Dashboard")
 # Your existing filtering & tab logic continues from here...
 
 
-# Filters
-st.title("📊 Rig Comparison Dashboard")
-
+# Filters1
 with st.container():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
