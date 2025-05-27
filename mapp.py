@@ -58,9 +58,6 @@ h1 { font-size: 2.4rem; font-weight: 700; color: #004578; }
 """, unsafe_allow_html=True)
 
 # Upload Section
-with st.expander("📁 Upload your CSV file", expanded=True):
-    
-@st.cache_data
 def load_data(file):
     return pd.read_csv(file, quotechar='"', skipinitialspace=True, engine="python")
 
