@@ -58,12 +58,13 @@ h1 { font-size: 2.4rem; font-weight: 700; color: #004578; }
 """, unsafe_allow_html=True)
 
 # Upload Section
-with st.expander("📁 Upload your CSV file", expanded=True):
-    uploaded_file = st.file_uploader("", type="csv")
-    if uploaded_file:
-        data = pd.read_csv(uploaded_file, quotechar='"', skipinitialspace=True, engine="python")
-        st.success("CSV uploaded and loaded successfully!")
-
+DATA_PATH = "sample_rig_dashboard_data.csv"
+try:
+    data = pd.read_csv(DATA_PATH, quotechar='"', skipinitialspace=True, engine="python")
+    st.success("CSV loaded successfully from app directory.")
+except Exception as e:
+    st.error(f"Error loading CSV: {e}")
+    st.stop()
 
 
     else:
