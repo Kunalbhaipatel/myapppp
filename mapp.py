@@ -4,15 +4,12 @@ import streamlit as st
 import plotly.express as px
 import pydeck as pdk
 
-from pathlib import Path
-
 st.set_page_config(layout="wide", page_title="Rig Comparison Dashboard", page_icon="📊")
 
-# Load logo image
+# ---------- Branding Header ----------
 LOGO_PATH = "prodigy_logo.png"
 DATA_PATH = "sample_rig_dashboard_data.csv"
 
-# ---------- Branding Header ----------
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     st.image(LOGO_PATH, width=180)
@@ -41,7 +38,7 @@ with st.container():
         selected_hole = st.selectbox("Select Hole Size", ["All"] + sorted(filtered_by_shaker["Hole_Size"].dropna().unique().tolist()))
     filtered = filtered_by_shaker if selected_hole == "All" else filtered_by_shaker[filtered_by_shaker["Hole_Size"] == selected_hole]
 
-# ---------- Metrics ----------
+# ---------- METRICS ----------
 st.markdown("### 📈 Key Performance Metrics")
 m1, m2, m3 = st.columns(3)
 with m1:
@@ -50,6 +47,25 @@ with m2:
     st.metric("Avg SCE", f"{filtered['Total_SCE'].mean():,.2f}")
 with m3:
     st.metric("Avg DSRE", f"{filtered['DSRE'].mean()*100:.1f}%")
+
+# ---------- TABS ----------
+tabs = st.tabs(["🧾 Well Overview", "📋 Summary & Charts", "📊 Statistical Insights", "📈 Advanced Analytics", "🧮 Multi-Well Comparison"])
+
+# ---------- TAB 1 ----------
+with tabs[0]:
+    st.markdown("### 🧾 Well Overview")
+    numeric_cols = [
+        "DSRE", "SCE_Loss_Ratio", "Total_SCE", "Total_Dil", "ROP", "Temp", "DOW", "AMW",
+        "Drilling_Hours", "Haul_OFF", "Base_Oil", "Water", "Weight_Material",
+        "Chemicals", "Dilution_Ratio", "Solids_Generated"
+    ]
+    available_cols = [col for col in numeric_cols if col in filtered.columns]
+    melted_df = filtered[["Well_Name"] + available_cols].melt(id_vars="Well_Name", var_name="Metric", value_name="Value")
+    if not melted_df.empty:
+        fig = px.bar(melted_df, x="Well_Name", y="Value", color="Metric", barmode="group", title="Well Name vs Key Metrics", height=600)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("No valid numeric data found for chart.")
 
 # ---------- Footer ----------
 st.markdown("---")
