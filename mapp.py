@@ -64,8 +64,65 @@ with tabs[0]:
     if not melted_df.empty:
         fig = px.bar(melted_df, x="Well_Name", y="Value", color="Metric", barmode="group", title="Well Name vs Key Metrics", height=600)
         st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.warning("No valid numeric data found for chart.")
+
+# ---------- TAB 2 ----------
+with tabs[1]:
+    st.markdown("### 📋 Summary & Charts")
+    subset = filtered.dropna(subset=["Well_Name"])
+    if "Depth" in subset.columns and "DOW" in subset.columns:
+        fig1 = px.bar(subset, x="Well_Name", y=["Depth", "DOW"], barmode='group')
+        st.plotly_chart(fig1, use_container_width=True)
+    if "Base_Oil" in subset.columns and "Water" in subset.columns:
+        fig2 = px.bar(subset, x="Well_Name", y=["Base_Oil", "Water", "Weight_Material", "Chemicals"], barmode="stack")
+        st.plotly_chart(fig2, use_container_width=True)
+
+# ---------- TAB 3 ----------
+with tabs[2]:
+    st.markdown("### 📊 Statistical Insights")
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Mean DSRE", f"{filtered['DSRE'].mean()*100:.2f}%")
+    k2.metric("Max Haul Off", f"{filtered['Haul_OFF'].max():,.0f}")
+    k3.metric("Avg SCE", f"{filtered['Total_SCE'].mean():,.2f}")
+    k4.metric("Avg Dilution", f"{filtered['Total_Dil'].mean():,.2f}")
+    if 'DSRE' in filtered.columns:
+        high_eff = filtered[filtered['DSRE'] > 0.9]
+        low_eff = filtered[filtered['DSRE'] < 0.6]
+        st.markdown(f"✅ **High Efficiency Wells (DSRE > 90%)**: {len(high_eff)}")
+        st.markdown(f"⚠️ **Low Efficiency Wells (DSRE < 60%)**: {len(low_eff)}")
+
+# ---------- TAB 4 ----------
+with tabs[3]:
+    st.markdown("### 📈 Advanced Analytics")
+    if "ROP" in filtered.columns and "Temp" in filtered.columns:
+        fig3 = px.scatter(filtered, x="ROP", y="Temp", color="Well_Name", title="ROP vs Temperature")
+        st.plotly_chart(fig3, use_container_width=True)
+    if "Base_Oil" in filtered.columns and "Water" in filtered.columns:
+        fig4 = px.scatter(filtered, x="Base_Oil", y="Water", size="Total_Dil", color="Well_Name", title="Base Oil vs Water")
+        st.plotly_chart(fig4, use_container_width=True)
+    try:
+        corr_cols = ["DSRE", "Total_SCE", "Total_Dil", "SCE_Loss_Ratio", "Dilution_Ratio", "ROP", "AMW", "Haul_OFF"]
+        corr_data = filtered[corr_cols].dropna()
+        corr_matrix = corr_data.corr()
+        fig_corr = px.imshow(corr_matrix, text_auto=True, aspect="auto", color_continuous_scale='Blues')
+        st.plotly_chart(fig_corr, use_container_width=True)
+    except Exception as e:
+        st.error(f"Correlation error: {e}")
+
+# ---------- TAB 5 ----------
+with tabs[4]:
+    st.markdown("### 🧮 Derrick vs Non-Derrick Comparison")
+    if "flowline_Shakers" in filtered.columns:
+        filtered["Shaker_Type"] = filtered["flowline_Shakers"].apply(
+            lambda x: "Derrick" if isinstance(x, str) and "derrick" in x.lower() else "Non-Derrick"
+        )
+        selected_metrics = st.multiselect("Select Metrics", ["DSRE", "ROP", "Total_Dil"], default=["DSRE", "ROP"])
+        if selected_metrics:
+            melted_df = filtered[["Well_Name", "Shaker_Type"] + selected_metrics].melt(
+                id_vars=["Well_Name", "Shaker_Type"], var_name="Metric", value_name="Value"
+            )
+            fig = px.bar(melted_df, x="Well_Name", y="Value", color="Shaker_Type", facet_col="Metric",
+                         color_discrete_map={"Derrick": "#007635", "Non-Derrick": "lightgrey"})
+            st.plotly_chart(fig, use_container_width=True)
 
 # ---------- Footer ----------
 st.markdown("---")
