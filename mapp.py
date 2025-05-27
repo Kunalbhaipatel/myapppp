@@ -58,18 +58,17 @@ h1 { font-size: 2.4rem; font-weight: 700; color: #004578; }
 """, unsafe_allow_html=True)
 
 # Upload Section
-def load_data(file):
-    return pd.read_csv(file, quotechar='"', skipinitialspace=True, engine="python")
+with st.expander("📁 Upload your CSV file", expanded=True):
+    uploaded_file = st.file_uploader("", type="csv")
+    if uploaded_file:
+        data = pd.read_csv(uploaded_file, quotechar='"', skipinitialspace=True, engine="python")
+        st.success("CSV uploaded and loaded successfully!")
 
 
-@st.cache_data
-def load_data():
-    return pd.read_csv("data/master_dashboard_data.csv")
 
-data = load_data()
-if "Discard_Ratio" in data.columns:
-    data["SCE_Loss_Ratio"] = data["Discard_Ratio"]
-
+    else:
+        st.warning("Please upload a CSV file to get started.")
+        st.stop()
 
 # Filters
 st.title("📊 Rig Comparison Dashboard")
@@ -124,7 +123,6 @@ with tabs[0]:
     if not melted_df.empty:
         fig = px.bar(melted_df, x="Well_Name", y="Value", color="Metric", barmode="group",
                      title="Well Name vs Key Metrics", height=600)
-        with st.spinner('Rendering chart...'):
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.warning("No valid numeric data found for chart.")
@@ -142,8 +140,7 @@ with tabs[1]:
             fig1 = px.bar(subset, x="Well_Name", y=y_cols, barmode='group', height=400,
                           labels={"value": "Barrels", "variable": "Metric"},
                           color_discrete_sequence=px.colors.qualitative.Prism)
-            with st.spinner('Rendering chart...'):
-        st.plotly_chart(fig1, use_container_width=True)
+            st.plotly_chart(fig1, use_container_width=True)
 
     with chart2:
         st.markdown("### 🌈 Dilution Breakdown")
@@ -151,8 +148,7 @@ with tabs[1]:
         if y_cols:
             fig2 = px.bar(subset, x="Well_Name", y=y_cols, barmode="stack", height=400,
                           color_discrete_sequence=px.colors.qualitative.Set2)
-            with st.spinner('Rendering chart...'):
-        st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, use_container_width=True)
 
     st.markdown("### 📈 DSRE vs Ratios")
     if "DSRE" in subset.columns:
@@ -165,8 +161,7 @@ with tabs[1]:
             if "Dilution_Ratio" in subset.columns:
                 fig3.add_scatter(x=subset["Well_Name"], y=subset["Dilution_Ratio"], mode='lines+markers', name="Dilution Ratio",
                                  line=dict(color="gray"))
-            with st.spinner('Rendering chart...'):
-        st.plotly_chart(fig3, use_container_width=True)
+            st.plotly_chart(fig3, use_container_width=True)
         except Exception as e:
             st.error(f"Chart rendering error: {e}")
 
@@ -178,8 +173,7 @@ with tabs[1]:
             fig4 = px.line(subset, x="Well_Name", y=ratio_cols, markers=True,
                            labels={"value": "Ratio", "variable": "Metric"},
                            title="Dilution vs SCE Loss Ratios")
-            with st.spinner('Rendering chart...'):
-        st.plotly_chart(fig4, use_container_width=True)
+            st.plotly_chart(fig4, use_container_width=True)
         except Exception as e:
             st.error(f"Error rendering ratio comparison chart: {e}")
     else:
@@ -219,8 +213,7 @@ with tabs[3]:
                 title="ROP vs Temperature",
                 labels={"ROP": "Rate of Penetration", "Temp": "Temperature (°F)"}
             )
-            with st.spinner('Rendering chart...'):
-        st.plotly_chart(fig_rop_temp, use_container_width=True)
+            st.plotly_chart(fig_rop_temp, use_container_width=True)
         except Exception as e:
             st.error(f"Error rendering ROP vs Temp chart: {e}")
 
@@ -232,8 +225,7 @@ with tabs[3]:
                 color="Well_Name", title="Base Oil vs Water Breakdown",
                 labels={"Base_Oil": "Base Oil (bbl)", "Water": "Water (bbl)"}
             )
-            with st.spinner('Rendering chart...'):
-        st.plotly_chart(fig_bo_water, use_container_width=True)
+            st.plotly_chart(fig_bo_water, use_container_width=True)
         except Exception as e:
             st.error(f"Error rendering Base Oil vs Water chart: {e}")
 
@@ -243,7 +235,6 @@ with tabs[3]:
         corr_data = filtered[corr_cols].dropna()
         corr_matrix = corr_data.corr()
         fig_corr = px.imshow(corr_matrix, text_auto=True, aspect="auto", color_continuous_scale='Blues')
-        with st.spinner('Rendering chart...'):
         st.plotly_chart(fig_corr, use_container_width=True)
     except Exception as e:
         st.error(f"Correlation heatmap error: {e}")
@@ -277,8 +268,7 @@ with tabs[4]:
                     title="Derrick vs Non-Derrick Comparison by Well and Metric", height=600,
                     color_discrete_map={"Derrick": "#007635", "Non-Derrick": "lightgrey"}
                 )
-                with st.spinner('Rendering chart...'):
-        st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True)
 
                 st.markdown("### 📋 Group Summary Statistics")
                 summary_metrics = [col for col in ["DSRE", "ROP", "Total_SCE", "Total_Dil", "Dilution_Ratio", "SCE_Loss_Ratio"] if col in filtered.columns]
@@ -319,12 +309,3 @@ with tabs[4]:
             st.info("Select at least one metric to view comparison.")
     else:
         st.warning("'flowline_Shakers' column not found in dataset.")
-
-# ---------- FOOTER ----------
-st.markdown("---")
-st.markdown(
-    "<div style='text-align: center; color: grey; font-size: 13px;'>"
-    "Powered by <strong>Prodigy IQ</strong> | Innovation Ahead · Shaping Tomorrow"
-    "</div>",
-    unsafe_allow_html=True
-)
