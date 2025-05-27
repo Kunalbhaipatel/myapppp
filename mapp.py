@@ -5,22 +5,66 @@ import pydeck as pdk
 
 st.set_page_config(layout="wide", page_title="Rig Comparison Dashboard", page_icon="📊")
 
-# Custom Styling
+# ---------- Branding + Styling ----------
 st.markdown("""
 <style>
-/* [styling block remains unchanged...] */
+body {
+    background-color: #f8fafc;
+}
+.header, .footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+}
+.header img {
+    height: 60px;
+}
+.footer img {
+    height: 40px;
+    margin-top: 3rem;
+    opacity: 0.6;
+}
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #004578;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+[data-testid="stMetric"] {
+    background-color: #ffffff;
+    border: 1px solid #d0d6dd;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    text-align: center;
+}
+.stTabs [data-baseweb="tab"] {
+    font-size: 1rem;
+    padding: 10px;
+    border-radius: 8px 8px 0 0;
+    background-color: #eaf1fb;
+    color: #004578;
+    margin-right: 0.5rem;
+}
+.stTabs [aria-selected="true"] {
+    background-color: #0078d4 !important;
+    color: white !important;
+    font-weight: bold;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # ---------- Load CSV Directly ----------
 DATA_PATH = "sample_rig_dashboard_data.csv"
+data = pd.read_csv(DATA_PATH, quotechar='"', skipinitialspace=True, engine="python")
 
-try:
-    data = pd.read_csv(DATA_PATH, quotechar='"', skipinitialspace=True, engine="python")
-    st.success("📄 Sample rig data loaded from file.")
-except Exception as e:
-    st.error(f"❌ Failed to load sample data: {e}")
-    st.stop()
+# ---------- Header with Logo ----------
+st.markdown('<div class="header"><img src="Prodigy_IQ_logo.png" alt="Prodigy IQ Logo"></div>', unsafe_allow_html=True)
+st.markdown("# Rig Comparison Dashboard")
+
+# Your existing filtering & tab logic continues from here...
 
 
 # Filters
@@ -262,3 +306,5 @@ with tabs[4]:
             st.info("Select at least one metric to view comparison.")
     else:
         st.warning("'flowline_Shakers' column not found in dataset.")
+# ---------- Footer with Logo ----------
+st.markdown('<div class="footer"><img src="Prodigy_IQ_logo.png" alt="Prodigy IQ Logo Footer"></div>', unsafe_allow_html=True)
